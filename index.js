@@ -14,6 +14,7 @@ function RecurseFuture (root) {
     watch_for: Inotify.IN_CLOSE_WRITE,
     callback: this.handler.bind(this)
   });
+
   recurse(root).pipe(this);
 }
 
