@@ -1,0 +1,40 @@
+{
+  "name": "recurse-future",
+  "version": "0.0.0",
+  "description": "Takes a root dir and recursively streams present and future files",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/uggedal/recurse-future.git"
+  },
+  "keywords": [
+    "recursive",
+    "stream",
+    "readdir",
+    "path",
+    "file",
+    "inotify",
+    "watch"
+  ],
+  "dependencies": {
+    "recurse": "~3.0.2",
+    "inotify": "~1.2.1",
+    "readable-stream": "~1.1.8"
+  },
+  "devDependencies": {
+    "tap": "~0.4.3",
+    "testfs": "~1.0.0"
+  },
+  "author": "Eivind Uggedal <eivind@uggedal.com> (http://uggedal.com/)",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/uggedal/recurse-future/issues"
+  }
+}
