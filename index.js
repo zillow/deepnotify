@@ -1,3 +1,4 @@
+var path = require('path');
 var inherits = require('util').inherits;
 var Duplex = require('stream').Duplex;
 var Inotify = require('inotify').Inotify;
@@ -7,6 +8,8 @@ if (!Duplex) Duplex = require('readable-stream').Duplex;
 
 function RecurseFuture (root) {
   Duplex.call(this, {objectMode: true});
+
+  this.root = root;
 
   this.inotify = new Inotify();
   this.inotify.addWatch({
@@ -26,7 +29,7 @@ RecurseFuture.prototype.close = function () {
 };
 
 RecurseFuture.prototype.handler = function (event) {
-  this.push(event.name);
+  this.push(path.join(this.root, event.name));
 };
 
 RecurseFuture.prototype._read = function () {
