@@ -20,6 +20,12 @@ setTimeout(function() {
 }, 5*1000);
 ```
 
+Compatibility
+-------------
+
+`recurse-future` requires Node.js version 0.10.0 or higher and a Linux
+system with a kernel version of 2.6.13 or higher.
+
 License
 -------
 
