@@ -6,6 +6,7 @@ future files using `inotify(7)`.
 
 [![build status](https://secure.travis-ci.org/uggedal/recurse-future.png)](http://travis-ci.org/uggedal/recurse-future)
 [![dependency status](https://david-dm.org/uggedal/recurse-future.png)](https://david-dm.org/uggedal/recurse-future)
+[![dev dependency status](https://david-dm.org/uggedal/recurse-future/dev-status.png)](https://david-dm.org/uggedal/recurse-future#info=devDependencies)
 
 Example
 -------
