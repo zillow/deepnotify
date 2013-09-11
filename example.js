@@ -1,8 +1,8 @@
-var rf = require('./');
+var deepnotify = require('./');
 
-var s = rf('.');
-s.pipe(process.stdout);
+var d = deepnotify('.');
+d.pipe(process.stdout);
 
 setTimeout(function() {
-  s.close();
+  d.close();
 }, 5*1000);

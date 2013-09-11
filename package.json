@@ -1,5 +1,5 @@
 {
-  "name": "recurse-future",
+  "name": "deepnotify",
   "version": "0.2.0",
   "description": "Takes a root dir and recursively streams present and future files",
   "engines": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/uggedal/recurse-future.git"
+    "url": "git://github.com/uggedal/deepnotify.git"
   },
   "keywords": [
     "recursive",
@@ -34,6 +34,6 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "bugs": {
-    "url": "https://github.com/uggedal/recurse-future/issues"
+    "url": "https://github.com/uggedal/deepnotify/issues"
   }
 }
