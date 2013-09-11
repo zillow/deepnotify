@@ -22,6 +22,22 @@ setTimeout(function() {
 }, 5*1000);
 ```
 
+Mehods
+------
+
+```javascript
+var recurseFuture = require('recurse-future');
+```
+
+### var s = recurseFuture(root)
+
+Return a redable stream of all present and future files recursively
+beneath a `root` directory.
+
+### s.close()
+
+Close all `inotify(7)` watches on `root` and all its subdirectories.
+
 Compatibility
 -------------
 
