@@ -1,14 +1,14 @@
 var fs = require('fs');
 var path = require('path');
 var inherits = require('util').inherits;
-var Duplex = require('stream').Duplex;
+var Readable = require('stream').Readable;
 var Inotify = require('inotify').Inotify;
 var recurse = require('recurse');
 
-if (!Duplex) Duplex = require('readable-stream').Duplex;
+if (!Readable) Readable = require('readable-stream').Readable;
 
 function DeepNotify (root) {
-  Duplex.call(this, {objectMode: true});
+  Readable.call(this, {objectMode: true});
 
   this.descriptors = {};
   this.inotify = new Inotify();
@@ -17,7 +17,7 @@ function DeepNotify (root) {
   this._recurse(root);
 }
 
-inherits(DeepNotify, Duplex);
+inherits(DeepNotify, Readable);
 
 DeepNotify.prototype.close = function () {
   this.inotify.close();
