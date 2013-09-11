@@ -15,7 +15,7 @@ function RecurseFuture (root) {
   this.inotify.addWatch({
     path: root,
     watch_for: Inotify.IN_CLOSE_WRITE,
-    callback: this.handler.bind(this)
+    callback: this._handler.bind(this)
   });
 
   recurse(root).pipe(this);
@@ -28,7 +28,7 @@ RecurseFuture.prototype.close = function () {
   this.push(null);
 };
 
-RecurseFuture.prototype.handler = function (event) {
+RecurseFuture.prototype._handler = function (event) {
   this.push(path.join(this.root, event.name));
 };
 
