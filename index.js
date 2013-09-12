@@ -39,7 +39,7 @@ DeepNotify.prototype._watch = function (relname) {
 };
 
 DeepNotify.prototype._eventHandler = function (event) {
-  var relname =  path.join(this.descriptors[event.watch], event.name);
+  var relname = path.join(this.descriptors[event.watch], event.name);
 
   if (event.mask & Inotify.IN_CLOSE_WRITE) {
     this.push(relname);
