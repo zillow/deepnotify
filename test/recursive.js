@@ -5,8 +5,6 @@ var Writable = require('stream').Writable;
 var path = require('path');
 var testfs = require('testfs');
 
-if (!Writable) Writable = require('readable-stream').Writable;
-
 test('recursive dirs', function (t) {
   t.plan(1);
 
