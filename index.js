@@ -7,6 +7,10 @@ var recurse = require('recurse');
 
 if (!Readable) Readable = require('readable-stream').Readable;
 
+var MASK = Inotify.IN_CLOSE_WRITE |
+           Inotify.IN_CREATE |
+           Inotify.IN_MOVED_TO;
+
 function DeepNotify (root) {
   Readable.call(this, {objectMode: true});
 
@@ -27,7 +31,7 @@ DeepNotify.prototype.close = function () {
 DeepNotify.prototype._watch = function (relname) {
   var id = this.inotify.addWatch({
     path: relname,
-    watch_for: Inotify.IN_CLOSE_WRITE | Inotify.IN_CREATE | Inotify.IN_MOVED_TO,
+    watch_for: MASK,
     callback: this._eventHandler.bind(this)
   });
 
