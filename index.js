@@ -27,7 +27,7 @@ DeepNotify.prototype.close = function () {
 DeepNotify.prototype._watch = function (relname) {
   var id = this.inotify.addWatch({
     path: relname,
-    watch_for: Inotify.IN_CLOSE_WRITE | Inotify.IN_CREATE,
+    watch_for: Inotify.IN_CLOSE_WRITE | Inotify.IN_CREATE | Inotify.IN_MOVED_TO,
     callback: this._eventHandler.bind(this)
   });
 
@@ -35,31 +35,38 @@ DeepNotify.prototype._watch = function (relname) {
 };
 
 DeepNotify.prototype._eventHandler = function (event) {
+  var relname =  path.join(this.descriptors[event.watch], event.name);
+
   if (event.mask & Inotify.IN_CLOSE_WRITE) {
-    this.push(this._relname(event));
+    this.push(relname);
   } else if (event.mask & Inotify.IN_CREATE ) {
-    this._createHandler(event);
+    this._changesHandler(relname, event, function(stat) {
+      if (stat.isDirectory()) {
+        this._watch(relname);
+        this._recurse(relname);
+      }
+    }.bind(this));
+  } else if (event.mask & Inotify.IN_MOVED_TO ) {
+    this._changesHandler(relname, event, function(stat) {
+      if (stat.isDirectory()) {
+        this._watch(relname);
+        this._recurse(relname);
+      } else {
+        this.push(relname);
+      }
+    }.bind(this));
   }
 };
 
-DeepNotify.prototype._createHandler = function (event) {
-  var relname = this._relname(event);
-
+DeepNotify.prototype._changesHandler = function (relname, event, cb) {
   fs.stat(relname, function(err, stat) {
     if (err) {
       this.emit('error', err);
       return;
     }
 
-    if (stat.isDirectory()) {
-      this._watch(relname);
-      this._recurse(relname);
-    }
+    cb(stat);
   }.bind(this));
-};
-
-DeepNotify.prototype._relname = function (event) {
-  return path.join(this.descriptors[event.watch], event.name);
 };
 
 DeepNotify.prototype._recurse = function (relname) {
