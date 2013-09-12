@@ -37,6 +37,11 @@ DeepNotify.prototype._watch = function (relname) {
 };
 
 DeepNotify.prototype._eventHandler = function (event) {
+  if (event.mask & Inotify.IN_IGNORED) {
+    delete this.descriptors[event.watch];
+    return;
+  }
+
   var relname = path.join(this.descriptors[event.watch], event.name);
 
   if (event.mask & Inotify.IN_CLOSE_WRITE) {
