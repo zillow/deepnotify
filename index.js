@@ -5,8 +5,6 @@ var Readable = require('stream').Readable;
 var Inotify = require('inotify').Inotify;
 var recurse = require('recurse');
 
-if (!Readable) Readable = require('readable-stream').Readable;
-
 var MASK = Inotify.IN_CLOSE_WRITE |
            Inotify.IN_CREATE |
            Inotify.IN_MOVED_TO;
