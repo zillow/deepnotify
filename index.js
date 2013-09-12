@@ -42,33 +42,22 @@ DeepNotify.prototype._eventHandler = function (event) {
   if (event.mask & Inotify.IN_CLOSE_WRITE) {
     this.push(relname);
   } else if (event.mask & Inotify.IN_CREATE) {
-    this._changesHandler(relname, event, function(stat) {
-      if (stat.isDirectory()) {
-        this._watch(relname);
-        this._recurse(relname);
-      }
-    }.bind(this));
+    if (this._isDir(event)) {
+      this._watch(relname);
+      this._recurse(relname);
+    }
   } else if (event.mask & Inotify.IN_MOVED_TO) {
-    this._changesHandler(relname, event, function(stat) {
-      if (stat.isDirectory()) {
+    if (this._isDir(event)) {
         this._watch(relname);
         this._recurse(relname);
-      } else {
-        this.push(relname);
-      }
-    }.bind(this));
+    } else {
+      this.push(relname);
+    }
   }
 };
 
-DeepNotify.prototype._changesHandler = function (relname, event, cb) {
-  fs.stat(relname, function(err, stat) {
-    if (err) {
-      this.emit('error', err);
-      return;
-    }
-
-    cb(stat);
-  }.bind(this));
+DeepNotify.prototype._isDir = function (event) {
+  return event.mask & Inotify.IN_ISDIR;
 };
 
 DeepNotify.prototype._recurse = function (relname) {
