@@ -39,14 +39,14 @@ DeepNotify.prototype._eventHandler = function (event) {
 
   if (event.mask & Inotify.IN_CLOSE_WRITE) {
     this.push(relname);
-  } else if (event.mask & Inotify.IN_CREATE ) {
+  } else if (event.mask & Inotify.IN_CREATE) {
     this._changesHandler(relname, event, function(stat) {
       if (stat.isDirectory()) {
         this._watch(relname);
         this._recurse(relname);
       }
     }.bind(this));
-  } else if (event.mask & Inotify.IN_MOVED_TO ) {
+  } else if (event.mask & Inotify.IN_MOVED_TO) {
     this._changesHandler(relname, event, function(stat) {
       if (stat.isDirectory()) {
         this._watch(relname);
