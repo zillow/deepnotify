@@ -23,7 +23,7 @@
     "watch"
   ],
   "dependencies": {
-    "recurse": "~3.0.2",
+    "recurse": "git://github.com/zillow/recurse.git#zillow",
     "inotify": "~1.2.1"
   },
   "devDependencies": {

@@ -1,3 +1,9 @@
+// export DEBUG_DEEPNOTIFY=1
+// unset DEBUG_DEEPNOTIFY
+var debug = process.env.DEBUG_DEEPNOTIFY
+  ? function () { console.error.apply(console, arguments); }
+  : function () {}
+
 var fs = require('fs');
 var path = require('path');
 var inherits = require('util').inherits;
@@ -5,97 +11,125 @@ var Readable = require('stream').Readable;
 var Inotify = require('inotify').Inotify;
 var recurse = require('recurse');
 
-var MASK = Inotify.IN_CLOSE_WRITE |
-           Inotify.IN_CREATE |
-           Inotify.IN_MOVED_TO;
+module.exports = DeepNotify;
 
-function DeepNotify (root) {
+inherits(DeepNotify, Readable);
+
+function DeepNotify(root) {
+  if (!(this instanceof DeepNotify)) {
+    return new DeepNotify(root);
+  }
+
   Readable.call(this, {objectMode: true});
 
   this.descriptors = {};
   this.inotify = new Inotify();
 
-  this._watch(root);
-  this._recurse(root);
+  this._watch(root, 'recursively');
 }
 
-inherits(DeepNotify, Readable);
+DeepNotify.MASK = Inotify.IN_CLOSE_WRITE |
+                  Inotify.IN_CREATE |
+                  Inotify.IN_MOVED_TO;
 
 DeepNotify.prototype.close = function () {
+  debug('close', this.inotify);
   this.inotify.close();
   this.push(null);
 };
 
-DeepNotify.prototype._watch = function (relname) {
+DeepNotify.prototype._watch = function (relname, recursive) {
+  debug('_watch', relname, recursive || '');
   var id = this.inotify.addWatch({
     path: relname,
-    watch_for: MASK,
+    watch_for: DeepNotify.MASK,
     callback: this._eventHandler.bind(this)
   });
 
   this.descriptors[id] = relname;
+
+  if (recursive) {
+    this._recurse(relname);
+  }
+};
+
+DeepNotify.prototype._getEventType = function (mask) {
+  if (Inotify.IN_CREATE       & mask) { return 'created'; }
+  if (Inotify.IN_DELETE       & mask) { return 'deleted'; }
+  if (Inotify.IN_MOVED_FROM   & mask) { return 'moved-out'; }
+  if (Inotify.IN_MOVED_TO     & mask) { return 'moved-in'; }
+  if (Inotify.IN_CLOSE_WRITE  & mask) { return 'modified'; }
+};
+
+DeepNotify.prototype._getFileChanges = function (mask) {
+  return {
+    inode : !!(Inotify.IN_ATTRIB & mask),
+    access: !!(Inotify.IN_ACCESS & mask),
+    xattrs: !!(Inotify.IN_ATTRIB & mask)
+  };
 };
 
 DeepNotify.prototype._eventHandler = function (event) {
-  if (event.mask & Inotify.IN_IGNORED) {
+  debug('_eventHandler', event);
+  var mask = event.mask;
+
+  if (mask & Inotify.IN_IGNORED) {
     delete this.descriptors[event.watch];
     return;
   }
 
   var relname = path.join(this.descriptors[event.watch], event.name);
+  var evt = this._getEventType(mask);
 
-  if (event.mask & Inotify.IN_CLOSE_WRITE) {
-    this.push(relname);
-  } else if (event.mask & Inotify.IN_CREATE) {
-    if (this._isDir(event)) {
-      this._watch(relname);
-      this._recurse(relname);
+  if (this._isDir(mask)) {
+    if (evt === 'created' ||
+      evt === 'moved-in') {
+      this._watch(relname, 'recursively');
     }
-  } else if (event.mask & Inotify.IN_MOVED_TO) {
-    if (this._isDir(event)) {
-        this._watch(relname);
-        this._recurse(relname);
-    } else {
-      this.push(relname);
-    }
+  } else {
+    this._publish({
+      id: event.watch,
+      path: relname,
+      type: 'file',
+      event: evt,
+      changes: this._getFileChanges(mask),
+    });
   }
 };
 
-DeepNotify.prototype._isDir = function (event) {
-  return event.mask & Inotify.IN_ISDIR;
+DeepNotify.prototype._isDir = function (mask) {
+  return mask & Inotify.IN_ISDIR;
+};
+
+DeepNotify.prototype._publish = function (info) {
+  debug('_publish', info);
+  this.push(info);
+  if (info.event) {
+    this.emit(info.event, info);
+  }
 };
 
 DeepNotify.prototype._recurse = function (relname) {
-  var r = recurse(relname, {writefilter: this._writefilter.bind(this)});
-  var self = this;
-
-  r.on('data', function (chunk) {
-    this.push(chunk);
-  }.bind(this));
-
-  r.on('error', function (err) {
-    this.emit('error', err);
-  }.bind(this));
+  debug('_recurse', relname);
+  var r = recurse(relname, {
+    writefilter: this._writefilter.bind(this)
+  });
+  r.on('end',   this.emit.bind(this, 'recursed', relname));
+  r.on('error', this.emit.bind(this, 'error'));
+  // r.on('data', this.push.bind(this));
+  // lacking a data handler, we need to start the flow manually
+  r.resume();
 };
 
-
 DeepNotify.prototype._writefilter = function (relname, stat) {
-  if (stat.isDirectory()) {
+  var isDirectory = stat.isDirectory();
+  if (isDirectory) {
+    // non-recursive watch
     this._watch(relname);
   }
-
-  return !stat.isDirectory();
+  return !isDirectory;
 };
 
 DeepNotify.prototype._read = function () {
   // noop
-};
-
-DeepNotify.prototype._write = function (chunk, encoding, cb) {
-  this.push(chunk);
-  cb(null);
-};
-
-module.exports = function (root) {
-  return new DeepNotify(root);
 };
