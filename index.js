@@ -82,11 +82,10 @@ DeepNotify.prototype._eventHandler = function (event) {
   var evt = this._getEventType(mask);
 
   if (this._isDir(mask)) {
-    if (evt === 'created' ||
-      evt === 'moved-in') {
+    if (evt === 'created' || evt === 'moved-in') {
       this._watch(relname, 'recursively');
     }
-  } else {
+  } else if (evt !== 'created') {
     this._publish({
       id: event.watch,
       path: relname,
