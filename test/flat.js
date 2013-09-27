@@ -4,22 +4,27 @@ var test = require('tap').test;
 var testfs = require('testfs');
 
 test('flat dir', function (t) {
-  t.plan(5);
+  t.plan(4);
 
   testfs('flat', ['1.txt', '2.txt'], function (err, rm) {
     var writes = 0;
+    var modifyEvents = 0;
 
     var flat = rf('flat');
     flat.on('readable', function () {
-      var data = flat.read();
-      if (data) {
-        t.similar(data, /flat\/\d\.txt/);
+      var data;
+      while (null !== (data = flat.read())) {
+        t.similar(data.path, /flat\/\d\.txt/);
         writes++;
-        if (writes == 4) flat.close();
+        if (writes === 2) flat.close();
       }
     });
+    flat.on('modified', function () {
+      modifyEvents++;
+    });
     flat.on('end', function () {
-      t.equal(writes, 4);
+      t.equal(writes, 2);
+      t.equal(modifyEvents, 2);
       rm();
     });
 
