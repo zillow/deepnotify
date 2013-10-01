@@ -37,16 +37,16 @@ test('recursive dirs', function (t) {
     var recursive = rf('recursive');
 
     var all = [];
-    var concat = new Writable;
+    var concat = new Writable({ objectMode: true });
     concat._write = function (chunk, enc, next) {
-      all.push(chunk);
-      if (all.length == files.length + futureFiles.length) recursive.close();
+      all.push(chunk.path);
+      if (all.length == futureFiles.length) recursive.close();
       next();
     };
-    concat.on('finish',  function () {
+    concat.on('end',  function () {
       t.equal(
         all.sort().join('\n'),
-        files.concat(futureFiles).map(function (name) {
+        futureFiles.map(function (name) {
           return path.join(prefix, name);
         }).sort().join('\n')
       );
